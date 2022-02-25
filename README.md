@@ -1,1 +1,1 @@
-docker exec -ti ecdcadfa4046 psql -U postgres 
+
