@@ -40,8 +40,10 @@ func (server *Server) setupRouter() {
 
 	// Category
 	router.POST("/category", server.createCategory)
-	// Login
+
+	// Users
 	router.POST("/users", server.createUser)
+	router.POST("/users/login", server.loginUser)
 
 	server.router = router
 }

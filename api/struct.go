@@ -1,5 +1,7 @@
 package api
 
+import db "github.com/maslow123/todoapp-services/db/sqlc"
+
 // Category
 type CreateCategoryRequest struct {
 	Name  string `json:"name" binding:"required"`
@@ -13,6 +15,16 @@ type CreateUserRequest struct {
 	Pic      string `json:"pic" binding="required"`
 	Password string `json:"password" binding="required"`
 	Email    string `json:"email" binding="required"`
+}
+
+type LoginUserRequest struct {
+	Email    string `json:"email" binding="required"`
+	Password string `json:"password" binding="required"`
+}
+
+type LoginUserResponse struct {
+	AccessToken string `json:"access_token"`
+	User        db.User
 }
 
 type GenericUserResponse struct {

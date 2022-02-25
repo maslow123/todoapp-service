@@ -1,5 +1,5 @@
 DIR = $(shell pwd)
-.PHONY: postgres createdb dropdb migrateup migratedown sqlc test server mock migrateup1 migratedown1
+.PHONY: postgres createdb dropdb migrateup migratedown sqlc test server mock migrateup1 migratedown1 resetdb
 
 postgres:
 	docker run --name postgres -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres
@@ -30,3 +30,5 @@ server:
 
 createsql:
 	migrate create -ext sql -dir db/migration -seq $(FILENAME)
+
+resetdb: dropdb createdb migrateup sqlc
