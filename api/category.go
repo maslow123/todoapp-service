@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -89,11 +88,9 @@ func (server *Server) deleteCategory(ctx *gin.Context) {
 		return
 	}
 
-	log.Println("==============", req.CategoryID)
 	err := server.store.DeleteCategory(ctx, req.CategoryID)
 	if err != nil {
 
-		log.Println("============== error", err)
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
