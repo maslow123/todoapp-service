@@ -8,6 +8,21 @@ type CreateCategoryRequest struct {
 	Color string `json:"color" binding:"required"`
 }
 
+type ListCategoryRequest struct {
+	PageID   int32 `form:"page_id" binding:"required,min=1"`
+	PageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
+}
+
+type UpdateCategoryRequest struct {
+	CategoryID int32  `json:"category_id" binding="required"`
+	Name       string `json:"name" binding:"required"`
+	Color      string `json:"color" binding:"required"`
+}
+
+type DeleteCategoryRequest struct {
+	CategoryID int32 `uri:"category_id" binding:"required,min=1"`
+}
+
 // User
 type CreateUserRequest struct {
 	Name     string `json:"name" binding="required"`

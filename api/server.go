@@ -38,12 +38,16 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 func (server *Server) setupRouter() {
 	router := gin.Default()
 
-	// Category
-	router.POST("/category", server.createCategory)
-
 	// Users
 	router.POST("/users", server.createUser)
 	router.POST("/users/login", server.loginUser)
+
+	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
+	// Category
+	authRoutes.POST("/categories", server.createCategory)
+	authRoutes.GET("/categories", server.listCategories)
+	authRoutes.PATCH("/categories", server.updateCategory)
+	authRoutes.DELETE("/categories/:category_id", server.deleteCategory)
 
 	server.router = router
 }
