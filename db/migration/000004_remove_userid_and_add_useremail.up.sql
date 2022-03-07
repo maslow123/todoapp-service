@@ -1,0 +1,1 @@
+ALTER TABLE todos ADD COLUMN user_email VARCHAR(50) NOT NULL;

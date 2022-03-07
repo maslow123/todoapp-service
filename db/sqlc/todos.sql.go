@@ -12,17 +12,17 @@ import (
 const createTodo = `-- name: CreateTodo :one
 INSERT INTO todos (
     category_id,
-    user_id,
+    user_email,
     title,
     content
 ) VALUES (
     $1, $2, $3, $4
-) RETURNING id, category_id, user_id, title, content, created_at, updated_at
+) RETURNING id, category_id, title, content, created_at, updated_at, user_email
 `
 
 type CreateTodoParams struct {
 	CategoryID int32  `json:"category_id"`
-	UserID     int32  `json:"user_id"`
+	UserEmail  string `json:"user_email"`
 	Title      string `json:"title"`
 	Content    string `json:"content"`
 }
@@ -30,7 +30,7 @@ type CreateTodoParams struct {
 func (q *Queries) CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, error) {
 	row := q.db.QueryRowContext(ctx, createTodo,
 		arg.CategoryID,
-		arg.UserID,
+		arg.UserEmail,
 		arg.Title,
 		arg.Content,
 	)
@@ -38,11 +38,11 @@ func (q *Queries) CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, e
 	err := row.Scan(
 		&i.ID,
 		&i.CategoryID,
-		&i.UserID,
 		&i.Title,
 		&i.Content,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.UserEmail,
 	)
 	return i, err
 }
@@ -57,14 +57,52 @@ func (q *Queries) DeleteTodo(ctx context.Context, id int32) error {
 	return err
 }
 
-const listTodoByUser = `-- name: ListTodoByUser :many
+const getTodo = `-- name: GetTodo :one
 SELECT
-    t.category_id, t.user_id, t.title, t.content, t.created_at, t.updated_at,
+    t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at,
     c.name as category_name, c.color as category_color
 FROM todos t
 LEFT JOIN categories c
     ON c.id = t.category_id
-WHERE user_id = $1
+WHERE t.id = $1 LIMIT 1
+FOR NO KEY UPDATE
+`
+
+type GetTodoRow struct {
+	CategoryID    int32          `json:"category_id"`
+	UserEmail     string         `json:"user_email"`
+	Title         string         `json:"title"`
+	Content       string         `json:"content"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+	CategoryName  sql.NullString `json:"category_name"`
+	CategoryColor sql.NullString `json:"category_color"`
+}
+
+func (q *Queries) GetTodo(ctx context.Context, id int32) (GetTodoRow, error) {
+	row := q.db.QueryRowContext(ctx, getTodo, id)
+	var i GetTodoRow
+	err := row.Scan(
+		&i.CategoryID,
+		&i.UserEmail,
+		&i.Title,
+		&i.Content,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CategoryName,
+		&i.CategoryColor,
+	)
+	return i, err
+}
+
+const listTodoByUser = `-- name: ListTodoByUser :many
+SELECT
+    t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at,
+    c.name as category_name, c.color as category_color
+FROM todos t
+LEFT JOIN categories c
+    ON c.id = t.category_id
+WHERE t.user_email = $1
 
 ORDER BY created_at ASC
 LIMIT $2
@@ -72,14 +110,14 @@ OFFSET $3
 `
 
 type ListTodoByUserParams struct {
-	UserID int32 `json:"user_id"`
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	UserEmail string `json:"user_email"`
+	Limit     int32  `json:"limit"`
+	Offset    int32  `json:"offset"`
 }
 
 type ListTodoByUserRow struct {
 	CategoryID    int32          `json:"category_id"`
-	UserID        int32          `json:"user_id"`
+	UserEmail     string         `json:"user_email"`
 	Title         string         `json:"title"`
 	Content       string         `json:"content"`
 	CreatedAt     time.Time      `json:"created_at"`
@@ -89,7 +127,7 @@ type ListTodoByUserRow struct {
 }
 
 func (q *Queries) ListTodoByUser(ctx context.Context, arg ListTodoByUserParams) ([]ListTodoByUserRow, error) {
-	rows, err := q.db.QueryContext(ctx, listTodoByUser, arg.UserID, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listTodoByUser, arg.UserEmail, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +137,7 @@ func (q *Queries) ListTodoByUser(ctx context.Context, arg ListTodoByUserParams) 
 		var i ListTodoByUserRow
 		if err := rows.Scan(
 			&i.CategoryID,
-			&i.UserID,
+			&i.UserEmail,
 			&i.Title,
 			&i.Content,
 			&i.CreatedAt,
@@ -122,15 +160,15 @@ func (q *Queries) ListTodoByUser(ctx context.Context, arg ListTodoByUserParams) 
 
 const updateTodoByUser = `-- name: UpdateTodoByUser :one
 UPDATE todos
-SET category_id = $2, user_id = $3, title = $4, content = $5, updated_at = now()
+SET category_id = $2, user_email = $3, title = $4, content = $5, updated_at = now()
 WHERE id = $1
-RETURNING id, category_id, user_id, title, content, created_at, updated_at
+RETURNING id, category_id, title, content, created_at, updated_at, user_email
 `
 
 type UpdateTodoByUserParams struct {
 	ID         int32  `json:"id"`
 	CategoryID int32  `json:"category_id"`
-	UserID     int32  `json:"user_id"`
+	UserEmail  string `json:"user_email"`
 	Title      string `json:"title"`
 	Content    string `json:"content"`
 }
@@ -139,7 +177,7 @@ func (q *Queries) UpdateTodoByUser(ctx context.Context, arg UpdateTodoByUserPara
 	row := q.db.QueryRowContext(ctx, updateTodoByUser,
 		arg.ID,
 		arg.CategoryID,
-		arg.UserID,
+		arg.UserEmail,
 		arg.Title,
 		arg.Content,
 	)
@@ -147,11 +185,11 @@ func (q *Queries) UpdateTodoByUser(ctx context.Context, arg UpdateTodoByUserPara
 	err := row.Scan(
 		&i.ID,
 		&i.CategoryID,
-		&i.UserID,
 		&i.Title,
 		&i.Content,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.UserEmail,
 	)
 	return i, err
 }

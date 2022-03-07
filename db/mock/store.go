@@ -122,6 +122,21 @@ func (mr *MockStoreMockRecorder) DeleteUser(arg0, arg1 interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockStore)(nil).DeleteUser), arg0, arg1)
 }
 
+// GetTodo mocks base method.
+func (m *MockStore) GetTodo(arg0 context.Context, arg1 int32) (db.GetTodoRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTodo", arg0, arg1)
+	ret0, _ := ret[0].(db.GetTodoRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTodo indicates an expected call of GetTodo.
+func (mr *MockStoreMockRecorder) GetTodo(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTodo", reflect.TypeOf((*MockStore)(nil).GetTodo), arg0, arg1)
+}
+
 // GetUser mocks base method.
 func (m *MockStore) GetUser(arg0 context.Context, arg1 string) (db.User, error) {
 	m.ctrl.T.Helper()

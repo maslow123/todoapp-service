@@ -13,6 +13,7 @@ type Querier interface {
 	DeleteCategory(ctx context.Context, id int32) error
 	DeleteTodo(ctx context.Context, id int32) error
 	DeleteUser(ctx context.Context, id int32) error
+	GetTodo(ctx context.Context, id int32) (GetTodoRow, error)
 	GetUser(ctx context.Context, email string) (User, error)
 	ListCategories(ctx context.Context, arg ListCategoriesParams) ([]Category, error)
 	ListTodoByUser(ctx context.Context, arg ListTodoByUserParams) ([]ListTodoByUserRow, error)

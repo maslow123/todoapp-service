@@ -19,7 +19,6 @@ CREATE TABLE "accounts" (
 CREATE TABLE "todos" (
   "id" SERIAL PRIMARY KEY,
   "category_id" int NOT NULL,
-  "user_id" int NOT NULL,
   "title" varchar(200) NOT NULL,
   "content" text NOT NULL,
   "created_at" timestamp NOT NULL DEFAULT(now()),

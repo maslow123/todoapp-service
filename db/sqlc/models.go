@@ -17,11 +17,11 @@ type Category struct {
 type Todo struct {
 	ID         int32     `json:"id"`
 	CategoryID int32     `json:"category_id"`
-	UserID     int32     `json:"user_id"`
 	Title      string    `json:"title"`
 	Content    string    `json:"content"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
+	UserEmail  string    `json:"user_email"`
 }
 
 type User struct {

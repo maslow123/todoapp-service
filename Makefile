@@ -28,6 +28,7 @@ mock:
 server:
 	go run main.go
 
+# make createsql FILENAME=
 createsql:
 	migrate create -ext sql -dir db/migration -seq $(FILENAME)
 
