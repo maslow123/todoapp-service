@@ -11,17 +11,14 @@ import (
 )
 
 func (server *Server) UpdateUserPhoto(ctx *gin.Context) {
-	// upload
 	formFile, _, err := ctx.Request.FormFile("file")
 	if err != nil {
-		// util.GenericUploadResponse(ctx, http.StatusInternalServerError, "error", map[string]interface{}{"data": "Select a file to upload"})
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
 	uploadUrl, err := models.NewMediaUpload().FileUpload(models.File{File: formFile})
 	if err != nil {
-		// util.GenericUploadResponse(ctx, http.StatusInternalServerError, "error", map[string]interface{}{"data": "Error uploading file"})
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -35,13 +32,10 @@ func (server *Server) UpdateUserPhoto(ctx *gin.Context) {
 
 	user, err := server.store.UpdateUserPhoto(ctx, arg)
 	if err != nil {
-		// log.Println("error: ", err)
-		// util.GenericUploadResponse(ctx, http.StatusInternalServerError, "error", map[string]interface{}{"data": "Error update user"})
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	// util.GenericUploadResponse(ctx, http.StatusOK, "success", map[string]interface{}{"data": uploadUrl})
 	ctx.JSON(http.StatusOK, newUserResponse(user))
 }
 
@@ -49,7 +43,6 @@ func RemoteUpload() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var url models.Url
 
-		// validate the request body
 		if err := c.BindJSON(&url); err != nil {
 			util.GenericUploadResponse(c, http.StatusBadRequest, "error", map[string]interface{}{"data": err.Error()})
 			return
