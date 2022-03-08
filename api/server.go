@@ -49,6 +49,9 @@ func (server *Server) setupRouter() {
 	authRoutes.PATCH("/categories", server.updateCategory)
 	authRoutes.DELETE("/categories/:category_id", server.deleteCategory)
 
+	// Upload
+	authRoutes.POST("/file", FileUpload())
+	authRoutes.POST("/remote", RemoteUpload())
 	server.router = router
 }
 
