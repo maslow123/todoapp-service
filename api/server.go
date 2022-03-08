@@ -50,7 +50,7 @@ func (server *Server) setupRouter() {
 	authRoutes.DELETE("/categories/:category_id", server.deleteCategory)
 
 	// Upload
-	authRoutes.POST("/file", FileUpload())
+	authRoutes.POST("/file", server.UpdateUserPhoto)
 	authRoutes.POST("/remote", RemoteUpload())
 	server.router = router
 }

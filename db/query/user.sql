@@ -25,6 +25,12 @@ SET name = $2, address = $3, pic = $4, email = $5, updated_at = now()
 WHERE id = $1
 RETURNING *;
 
+-- name: UpdateUserPhoto :one
+UPDATE users
+SET pic = $2, updated_at = now()
+WHERE email = $1
+RETURNING *;
+
 -- name: DeleteUser :exec
 DELETE FROM users
 WHERE id = $1;

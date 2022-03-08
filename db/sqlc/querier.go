@@ -21,6 +21,7 @@ type Querier interface {
 	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error)
 	UpdateTodoByUser(ctx context.Context, arg UpdateTodoByUserParams) (Todo, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UpdateUserPhoto(ctx context.Context, arg UpdateUserPhotoParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)
