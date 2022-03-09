@@ -38,8 +38,8 @@ type LoginUserRequest struct {
 }
 
 type LoginUserResponse struct {
-	AccessToken string `json:"access_token"`
-	User        db.User
+	AccessToken string  `json:"access_token"`
+	User        db.User `json:"user"`
 }
 
 type GenericUserResponse struct {

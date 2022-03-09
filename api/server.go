@@ -39,10 +39,11 @@ func (server *Server) setupRouter() {
 	router := gin.Default()
 
 	// Users
+	router.Use(CORSMiddleware())
 	router.POST("/users", server.createUser)
 	router.POST("/users/login", server.loginUser)
 
-	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
+	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker), CORSMiddleware())
 	// Category
 	authRoutes.POST("/categories", server.createCategory)
 	authRoutes.GET("/categories", server.listCategories)
