@@ -1,0 +1,6 @@
+ALTER TABLE categories DROP COLUMN IF EXISTS color;
+
+ALTER TABLE todos 
+    ADD COLUMN color varchar(10) NOT NULL,
+    ADD COLUMN date TIMESTAMP NOT NULL,
+    ADD COLUMN is_priority BOOLEAN NOT NULL;

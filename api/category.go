@@ -16,12 +16,7 @@ func (server *Server) createCategory(ctx *gin.Context) {
 		return
 	}
 
-	arg := db.CreateCategoryParams{
-		Name:  req.Name,
-		Color: req.Color,
-	}
-
-	category, err := server.store.CreateCategory(context.Background(), arg)
+	category, err := server.store.CreateCategory(context.Background(), req.Name)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -67,9 +62,8 @@ func (server *Server) updateCategory(ctx *gin.Context) {
 		return
 	}
 	arg := db.UpdateCategoryParams{
-		ID:    req.CategoryID,
-		Name:  req.Name,
-		Color: req.Color,
+		ID:   req.CategoryID,
+		Name: req.Name,
 	}
 
 	category, err := server.store.UpdateCategory(context.Background(), arg)

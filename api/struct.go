@@ -4,8 +4,7 @@ import db "github.com/maslow123/todoapp-services/db/sqlc"
 
 // Category
 type CreateCategoryRequest struct {
-	Name  string `json:"name" binding:"required"`
-	Color string `json:"color" binding:"required"`
+	Name string `json:"name" binding:"required"`
 }
 
 type ListCategoryRequest struct {
@@ -16,7 +15,6 @@ type ListCategoryRequest struct {
 type UpdateCategoryRequest struct {
 	CategoryID int32  `json:"category_id" binding:"required"`
 	Name       string `json:"name" binding:"required"`
-	Color      string `json:"color" binding:"required"`
 }
 
 type DeleteCategoryRequest struct {
@@ -52,8 +50,11 @@ type GenericUserResponse struct {
 // Todo
 type CreateTodoRequest struct {
 	CategoryID int32  `json:"category_id" binding:"required,min=1"`
-	Title      string `json:"title"`
-	Content    string `json:"content"`
+	Title      string `json:"title" binding:"required"`
+	Content    string `json:"content" binding:"required"`
+	Date       string `json:"date" binding:"required"`
+	Color      string `json:"color" binding:"required"`
+	IsPriority *bool  `json:"is_priority" binding:"required"`
 }
 
 type GetTodoRequest struct {

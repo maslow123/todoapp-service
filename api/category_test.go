@@ -34,20 +34,14 @@ func TestCreateCategoryAPI(t *testing.T) {
 		{
 			name: "OK",
 			body: gin.H{
-				"name":  category.Name,
-				"color": category.Color,
+				"name": category.Name,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Email, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				arg := db.CreateCategoryParams{
-					Name:  category.Name,
-					Color: category.Color,
-				}
-
 				store.EXPECT().
-					CreateCategory(gomock.Any(), gomock.Eq(arg)).
+					CreateCategory(gomock.Any(), gomock.Eq(category.Name)).
 					Times(1).
 					Return(category, nil)
 			},
@@ -59,8 +53,7 @@ func TestCreateCategoryAPI(t *testing.T) {
 		{
 			name: "NoAuthorization",
 			body: gin.H{
-				"name":  category.Name,
-				"color": category.Color,
+				"name": category.Name,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 			},
@@ -77,8 +70,7 @@ func TestCreateCategoryAPI(t *testing.T) {
 		{
 			name: "InternalError",
 			body: gin.H{
-				"name":  category.Name,
-				"color": category.Color,
+				"name": category.Name,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Email, time.Minute)
@@ -288,22 +280,19 @@ func TestUpdateCategoryAPI(t *testing.T) {
 			body: gin.H{
 				"category_id": category1.ID,
 				"name":        fmt.Sprintf("update-%s", category1.Name),
-				"color":       fmt.Sprintf("update-%s", category1.Color),
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Email, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				arg := db.UpdateCategoryParams{
-					ID:    category1.ID,
-					Name:  fmt.Sprintf("update-%s", category1.Name),
-					Color: fmt.Sprintf("update-%s", category1.Color),
+					ID:   category1.ID,
+					Name: fmt.Sprintf("update-%s", category1.Name),
 				}
 
 				resp := db.Category{
-					ID:    arg.ID,
-					Name:  arg.Name,
-					Color: arg.Color,
+					ID:   arg.ID,
+					Name: arg.Name,
 				}
 
 				store.EXPECT().
@@ -321,7 +310,6 @@ func TestUpdateCategoryAPI(t *testing.T) {
 			body: gin.H{
 				"category_id": category1.ID,
 				"name":        fmt.Sprintf("update-%s", category1.Name),
-				"color":       fmt.Sprintf("update-%s", category1.Color),
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Email, time.Minute)
@@ -341,7 +329,6 @@ func TestUpdateCategoryAPI(t *testing.T) {
 			body: gin.H{
 				"category_id": category1.ID,
 				"name":        fmt.Sprintf("update-%s", category1.Name),
-				"color":       fmt.Sprintf("update-%s", category1.Color),
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 			},
@@ -359,26 +346,6 @@ func TestUpdateCategoryAPI(t *testing.T) {
 			body: gin.H{
 				"category_id": category1.ID,
 				"name":        "",
-				"color":       fmt.Sprintf("update-%s", category1.Color),
-			},
-			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Email, time.Minute)
-			},
-			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().
-					UpdateCategory(gomock.Any(), gomock.Any()).
-					Times(0)
-			},
-			checkResponse: func(recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusBadRequest, recorder.Code)
-			},
-		},
-		{
-			name: "InvalidColor",
-			body: gin.H{
-				"category_id": category1.ID,
-				"name":        "xxx",
-				"color":       "",
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Email, time.Minute)
@@ -477,9 +444,8 @@ func TestDeleteCategoryAPI(t *testing.T) {
 
 func randomCategory() db.Category {
 	return db.Category{
-		ID:    int32(util.RandomInt(1, 1000)),
-		Name:  util.RandomString(6),
-		Color: util.RandomColor(),
+		ID:   int32(util.RandomInt(1, 1000)),
+		Name: util.RandomString(6),
 	}
 }
 
@@ -492,7 +458,6 @@ func requireBodyMatchCategoryAfterUpdate(t *testing.T, body *bytes.Buffer, categ
 	require.NoError(t, err)
 	require.Equal(t, gotCategory.ID, category.ID)
 	require.Equal(t, gotCategory.Name, fmt.Sprintf("update-%s", category.Name))
-	require.Equal(t, gotCategory.Color, fmt.Sprintf("update-%s", category.Color))
 }
 
 func requireBodyMatchCategory(t *testing.T, body *bytes.Buffer, category db.Category) {

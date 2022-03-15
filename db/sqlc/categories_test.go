@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/maslow123/todoapp-services/util"
@@ -10,19 +9,13 @@ import (
 )
 
 func createRandomCategory(t *testing.T) Category {
-	color := fmt.Sprintf("#%s", util.RandomString(5))
+	name := util.RandomString(6)
 
-	arg := CreateCategoryParams{
-		Name:  util.RandomString(6),
-		Color: color,
-	}
-
-	category, err := testQueries.CreateCategory(context.Background(), arg)
+	category, err := testQueries.CreateCategory(context.Background(), name)
 	require.NoError(t, err)
 	require.NotEmpty(t, category)
 
-	require.Equal(t, arg.Name, category.Name)
-	require.Equal(t, arg.Color, category.Color)
+	require.Equal(t, name, category.Name)
 
 	require.NotZero(t, category.CreatedAt)
 
@@ -58,9 +51,8 @@ func TestUpdateCategory(t *testing.T) {
 	category1 := createRandomCategory(t)
 
 	arg := UpdateCategoryParams{
-		ID:    category1.ID,
-		Color: fmt.Sprintf("#%s", util.RandomString(6)),
-		Name:  util.RandomString(6),
+		ID:   category1.ID,
+		Name: util.RandomString(6),
 	}
 
 	category2, err := testQueries.UpdateCategory(context.Background(), arg)
@@ -68,7 +60,6 @@ func TestUpdateCategory(t *testing.T) {
 	require.NotEmpty(t, category2)
 
 	require.Equal(t, arg.ID, category2.ID)
-	require.Equal(t, arg.Color, category2.Color)
 	require.Equal(t, arg.Name, category2.Name)
 }
 

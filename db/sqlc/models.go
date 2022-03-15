@@ -9,7 +9,6 @@ import (
 type Category struct {
 	ID        int32     `json:"id"`
 	Name      string    `json:"name"`
-	Color     string    `json:"color"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -22,6 +21,9 @@ type Todo struct {
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
 	UserEmail  string    `json:"user_email"`
+	Color      string    `json:"color"`
+	Date       time.Time `json:"date"`
+	IsPriority bool      `json:"is_priority"`
 }
 
 type User struct {

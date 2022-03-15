@@ -3,19 +3,28 @@ package db
 import (
 	"context"
 	"testing"
+	"time"
 
+	"github.com/maslow123/todoapp-services/util"
 	"github.com/stretchr/testify/require"
 )
 
 func createRandomTodo(t *testing.T, userEmail string, categoryID int32) Todo {
 	title := "Todo title 1"
 	content := "Todo content 1"
+	date, err := time.Parse("2006-01-02", "2021-10-29")
+	require.NoError(t, err)
+
+	color := util.RandomColor()
 
 	arg := CreateTodoParams{
 		CategoryID: categoryID,
 		UserEmail:  userEmail,
 		Title:      title,
 		Content:    content,
+		Date:       date,
+		Color:      color,
+		IsPriority: false,
 	}
 
 	todo, err := testQueries.CreateTodo(context.Background(), arg)
@@ -25,6 +34,9 @@ func createRandomTodo(t *testing.T, userEmail string, categoryID int32) Todo {
 	require.Equal(t, todo.CategoryID, arg.CategoryID)
 	require.Equal(t, todo.Title, arg.Title)
 	require.Equal(t, todo.Content, arg.Content)
+	require.Equal(t, todo.Date.Unix(), arg.Date.Unix())
+	require.Equal(t, todo.Color, arg.Color)
+	require.Equal(t, todo.IsPriority, arg.IsPriority)
 
 	return todo
 }
@@ -55,21 +67,27 @@ func TestListTodoByUser(t *testing.T) {
 
 	require.Equal(t, category.ID, todos[0].CategoryID)
 	require.Equal(t, category.Name, todos[0].CategoryName.String)
-	require.Equal(t, category.Color, todos[0].CategoryColor.String)
 	require.Equal(t, 10, len(todos))
 }
 
 func TestUpdateTodoByUser(t *testing.T) {
 	user := createRandomUser(t)
 	category := createRandomCategory(t)
+	date, err := time.Parse("2006-01-02", "2021-10-28")
+	require.NoError(t, err)
+
+	color := util.RandomColor()
 
 	todo1 := createRandomTodo(t, user.Email, category.ID)
 
 	arg := UpdateTodoByUserParams{
-		ID:        todo1.ID,
-		Title:     "Update title 1",
-		Content:   "Update content 1",
-		UserEmail: user.Email,
+		ID:         todo1.ID,
+		Title:      "Update title 1",
+		Content:    "Update content 1",
+		UserEmail:  user.Email,
+		Date:       date,
+		Color:      color,
+		IsPriority: true,
 	}
 
 	todo2, err := testQueries.UpdateTodoByUser(context.Background(), arg)
@@ -80,6 +98,9 @@ func TestUpdateTodoByUser(t *testing.T) {
 	require.Equal(t, arg.Title, todo2.Title)
 	require.Equal(t, arg.Content, todo2.Content)
 	require.Equal(t, arg.UserEmail, todo2.UserEmail)
+	require.Equal(t, arg.Date.Unix(), todo2.Date.Unix())
+	require.Equal(t, arg.Color, todo2.Color)
+	require.Equal(t, arg.IsPriority, todo2.IsPriority)
 
 	require.NotZero(t, todo2.UpdatedAt)
 }

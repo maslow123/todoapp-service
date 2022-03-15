@@ -50,6 +50,9 @@ func (server *Server) setupRouter() {
 	authRoutes.PATCH("/categories", server.updateCategory)
 	authRoutes.DELETE("/categories/:category_id", server.deleteCategory)
 
+	// TOdo
+	authRoutes.POST("/todo", server.createTodo)
+
 	// Upload
 	authRoutes.POST("/file", server.UpdateUserPhoto)
 	authRoutes.POST("/remote", RemoteUpload())

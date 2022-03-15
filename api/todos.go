@@ -2,8 +2,11 @@ package api
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	db "github.com/maslow123/todoapp-services/db/sqlc"
@@ -13,17 +16,40 @@ import (
 func (server *Server) createTodo(ctx *gin.Context) {
 	var req CreateTodoRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Println(err)
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 
+	date, err := time.Parse("2006-01-02", req.Date)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("invalid-date")))
+		return
+	}
+
+	// check category is exists or no
+	_, err = server.store.GetCategory(context.Background(), req.CategoryID)
+	if err != nil {
+		log.Println("Error: ", err)
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(errors.New("invalid-category")))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	log.Println("Tidak error======", req.CategoryID)
 	arg := db.CreateTodoParams{
 		UserEmail:  authPayload.Username,
 		CategoryID: req.CategoryID,
 		Title:      req.Title,
 		Content:    req.Content,
+		Date:       date,
+		Color:      req.Color,
+		IsPriority: *req.IsPriority,
 	}
 
 	todo, err := server.store.CreateTodo(context.Background(), arg)
