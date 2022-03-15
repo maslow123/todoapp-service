@@ -32,7 +32,6 @@ func (server *Server) createTodo(ctx *gin.Context) {
 	// check category is exists or no
 	_, err = server.store.GetCategory(context.Background(), req.CategoryID)
 	if err != nil {
-		log.Println("Error: ", err)
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(errors.New("invalid-category")))
 			return
@@ -41,7 +40,6 @@ func (server *Server) createTodo(ctx *gin.Context) {
 		return
 	}
 
-	log.Println("Tidak error======", req.CategoryID)
 	arg := db.CreateTodoParams{
 		UserEmail:  authPayload.Username,
 		CategoryID: req.CategoryID,
