@@ -180,7 +180,7 @@ func (q *Queries) ListTodoByUser(ctx context.Context, arg ListTodoByUserParams) 
 
 const updateTodoByUser = `-- name: UpdateTodoByUser :one
 UPDATE todos
-SET category_id = $2, user_email = $3, title = $4, content = $5, updated_at = now(), date = $6, color = $7, is_priority = $8
+SET category_id = $2, title = $3, content = $4, updated_at = now(), date = $5, color = $6, is_priority = $7
 WHERE id = $1
 RETURNING id, category_id, title, content, created_at, updated_at, user_email, color, date, is_priority
 `
@@ -188,7 +188,6 @@ RETURNING id, category_id, title, content, created_at, updated_at, user_email, c
 type UpdateTodoByUserParams struct {
 	ID         int32     `json:"id"`
 	CategoryID int32     `json:"category_id"`
-	UserEmail  string    `json:"user_email"`
 	Title      string    `json:"title"`
 	Content    string    `json:"content"`
 	Date       time.Time `json:"date"`
@@ -200,7 +199,6 @@ func (q *Queries) UpdateTodoByUser(ctx context.Context, arg UpdateTodoByUserPara
 	row := q.db.QueryRowContext(ctx, updateTodoByUser,
 		arg.ID,
 		arg.CategoryID,
-		arg.UserEmail,
 		arg.Title,
 		arg.Content,
 		arg.Date,

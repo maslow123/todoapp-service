@@ -84,7 +84,6 @@ func TestUpdateTodoByUser(t *testing.T) {
 		ID:         todo1.ID,
 		Title:      "Update title 1",
 		Content:    "Update content 1",
-		UserEmail:  user.Email,
 		Date:       date,
 		Color:      color,
 		IsPriority: true,
@@ -97,7 +96,6 @@ func TestUpdateTodoByUser(t *testing.T) {
 	require.Equal(t, arg.ID, todo2.ID)
 	require.Equal(t, arg.Title, todo2.Title)
 	require.Equal(t, arg.Content, todo2.Content)
-	require.Equal(t, arg.UserEmail, todo2.UserEmail)
 	require.Equal(t, arg.Date.Unix(), todo2.Date.Unix())
 	require.Equal(t, arg.Color, todo2.Color)
 	require.Equal(t, arg.IsPriority, todo2.IsPriority)

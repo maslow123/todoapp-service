@@ -62,12 +62,18 @@ func (server *Server) createTodo(ctx *gin.Context) {
 func (server *Server) getTodo(ctx *gin.Context) {
 	var req GetTodoRequest
 	if err := ctx.ShouldBindUri(&req); err != nil {
+		log.Println(err)
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	todo, err := server.store.GetTodo(ctx, req.TodoID)
 	if err != nil {
+		log.Println(err)
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(errors.New("not-found")))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -85,6 +91,7 @@ func (server *Server) getTodo(ctx *gin.Context) {
 func (server *Server) listTodo(ctx *gin.Context) {
 	var req ListTodoRequest
 	if err := ctx.ShouldBindQuery(&req); err != nil {
+		log.Println(err)
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
@@ -103,5 +110,81 @@ func (server *Server) listTodo(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, todos)
+}
 
+func (server *Server) deleteTodo(ctx *gin.Context) {
+	var req GetTodoRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+	_, err := server.store.GetTodo(ctx, req.TodoID)
+	if err != nil {
+		log.Println(err)
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(errors.New("not-found")))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = server.store.DeleteTodo(ctx, req.TodoID)
+	if err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, "OK")
+}
+
+func (server *Server) updateTodo(ctx *gin.Context) {
+	var req UpdateTodoRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	date, err := time.Parse("2006-01-02", req.Date)
+	if err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("invalid-date")))
+		return
+	}
+
+	// check todo is exists or no
+	_, err = server.store.GetTodo(context.Background(), req.TodoID)
+	if err != nil {
+		log.Println(err)
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(errors.New("todo-not-found")))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	// update todo
+	arg := db.UpdateTodoByUserParams{
+		ID:         req.TodoID,
+		CategoryID: req.CategoryID,
+		Title:      req.Title,
+		Content:    req.Content,
+		Date:       date,
+		Color:      req.Color,
+		IsPriority: *req.IsPriority,
+	}
+
+	todo, err := server.store.UpdateTodoByUser(context.Background(), arg)
+	if err != nil {
+		log.Println(err)
+
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, todo)
 }

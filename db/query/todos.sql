@@ -36,7 +36,7 @@ FOR NO KEY UPDATE;
 
 -- name: UpdateTodoByUser :one
 UPDATE todos
-SET category_id = $2, user_email = $3, title = $4, content = $5, updated_at = now(), date = $6, color = $7, is_priority = $8
+SET category_id = $2, title = $3, content = $4, updated_at = now(), date = $5, color = $6, is_priority = $7
 WHERE id = $1
 RETURNING *;
 
