@@ -5,7 +5,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"time"
 )
 
@@ -71,32 +70,34 @@ func (q *Queries) DeleteTodo(ctx context.Context, id int32) error {
 
 const getTodo = `-- name: GetTodo :one
 SELECT
-    t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority,
+    t.id, t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority,
     c.name as category_name
 FROM todos t
-LEFT JOIN categories c
+INNER JOIN categories c
     ON c.id = t.category_id
 WHERE t.id = $1 LIMIT 1
 FOR NO KEY UPDATE
 `
 
 type GetTodoRow struct {
-	CategoryID   int32          `json:"category_id"`
-	UserEmail    string         `json:"user_email"`
-	Title        string         `json:"title"`
-	Content      string         `json:"content"`
-	CreatedAt    time.Time      `json:"created_at"`
-	UpdatedAt    time.Time      `json:"updated_at"`
-	Date         time.Time      `json:"date"`
-	Color        string         `json:"color"`
-	IsPriority   bool           `json:"is_priority"`
-	CategoryName sql.NullString `json:"category_name"`
+	ID           int32     `json:"id"`
+	CategoryID   int32     `json:"category_id"`
+	UserEmail    string    `json:"user_email"`
+	Title        string    `json:"title"`
+	Content      string    `json:"content"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Date         time.Time `json:"date"`
+	Color        string    `json:"color"`
+	IsPriority   bool      `json:"is_priority"`
+	CategoryName string    `json:"category_name"`
 }
 
 func (q *Queries) GetTodo(ctx context.Context, id int32) (GetTodoRow, error) {
 	row := q.db.QueryRowContext(ctx, getTodo, id)
 	var i GetTodoRow
 	err := row.Scan(
+		&i.ID,
 		&i.CategoryID,
 		&i.UserEmail,
 		&i.Title,
@@ -113,10 +114,10 @@ func (q *Queries) GetTodo(ctx context.Context, id int32) (GetTodoRow, error) {
 
 const listTodoByUser = `-- name: ListTodoByUser :many
 SELECT
-    t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority,
+    t.id, t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority,
     c.name as category_name
 FROM todos t
-LEFT JOIN categories c
+INNER JOIN categories c
     ON c.id = t.category_id
 WHERE t.user_email = $1
 
@@ -132,16 +133,17 @@ type ListTodoByUserParams struct {
 }
 
 type ListTodoByUserRow struct {
-	CategoryID   int32          `json:"category_id"`
-	UserEmail    string         `json:"user_email"`
-	Title        string         `json:"title"`
-	Content      string         `json:"content"`
-	CreatedAt    time.Time      `json:"created_at"`
-	UpdatedAt    time.Time      `json:"updated_at"`
-	Date         time.Time      `json:"date"`
-	Color        string         `json:"color"`
-	IsPriority   bool           `json:"is_priority"`
-	CategoryName sql.NullString `json:"category_name"`
+	ID           int32     `json:"id"`
+	CategoryID   int32     `json:"category_id"`
+	UserEmail    string    `json:"user_email"`
+	Title        string    `json:"title"`
+	Content      string    `json:"content"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Date         time.Time `json:"date"`
+	Color        string    `json:"color"`
+	IsPriority   bool      `json:"is_priority"`
+	CategoryName string    `json:"category_name"`
 }
 
 func (q *Queries) ListTodoByUser(ctx context.Context, arg ListTodoByUserParams) ([]ListTodoByUserRow, error) {
@@ -154,6 +156,7 @@ func (q *Queries) ListTodoByUser(ctx context.Context, arg ListTodoByUserParams) 
 	for rows.Next() {
 		var i ListTodoByUserRow
 		if err := rows.Scan(
+			&i.ID,
 			&i.CategoryID,
 			&i.UserEmail,
 			&i.Title,

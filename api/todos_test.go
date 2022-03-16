@@ -1074,7 +1074,7 @@ func randomTodoWithExistingUser(t *testing.T, userEmail string) db.ListTodoByUse
 		Color:        util.RandomColor(),
 		IsPriority:   false,
 		UserEmail:    userEmail,
-		CategoryName: sql.NullString{String: category.Name},
+		CategoryName: category.Name,
 	}
 
 	return todo

@@ -13,10 +13,10 @@ INSERT INTO todos (
 
 -- name: ListTodoByUser :many
 SELECT
-    t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority,
+    t.id, t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority,
     c.name as category_name
 FROM todos t
-LEFT JOIN categories c
+INNER JOIN categories c
     ON c.id = t.category_id
 WHERE t.user_email = $1
 
@@ -26,10 +26,10 @@ OFFSET $3;
 
 -- name: GetTodo :one
 SELECT
-    t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority,
+    t.id, t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority,
     c.name as category_name
 FROM todos t
-LEFT JOIN categories c
+INNER JOIN categories c
     ON c.id = t.category_id
 WHERE t.id = $1 LIMIT 1
 FOR NO KEY UPDATE;

@@ -342,7 +342,7 @@ func TestUpdateCategoryAPI(t *testing.T) {
 			},
 		},
 		{
-			name: "InvalidName",
+			name: "Invalid Name",
 			body: gin.H{
 				"category_id": category1.ID,
 				"name":        "",

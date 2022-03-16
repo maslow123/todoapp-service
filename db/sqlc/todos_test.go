@@ -66,7 +66,7 @@ func TestListTodoByUser(t *testing.T) {
 	require.NotEmpty(t, todos)
 
 	require.Equal(t, category.ID, todos[0].CategoryID)
-	require.Equal(t, category.Name, todos[0].CategoryName.String)
+	require.Equal(t, category.Name, todos[0].CategoryName)
 	require.Equal(t, 10, len(todos))
 }
 
