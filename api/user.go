@@ -5,9 +5,11 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	db "github.com/maslow123/todoapp-services/db/sqlc"
+	"github.com/maslow123/todoapp-services/token"
 	"github.com/maslow123/todoapp-services/util"
 )
 
@@ -44,6 +46,10 @@ func (server *Server) createUser(ctx *gin.Context) {
 	user, err := server.store.CreateUser(ctx, arg)
 	if err != nil {
 		log.Println(err)
+		if strings.Contains(err.Error(), "pq: duplicate key") {
+			ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("email-already-exists")))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -90,4 +96,14 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response)
+}
+
+func (server *Server) me(ctx *gin.Context) {
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	if authPayload == nil {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("Unauthorized")))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, authPayload)
 }
