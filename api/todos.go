@@ -97,19 +97,54 @@ func (server *Server) listTodo(ctx *gin.Context) {
 	}
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	arg := db.ListTodoByUserParams{
+	var resp ListTodoResponse
+
+	// Get Today List
+	argTodayList := db.ListTodayTodoParams{
 		UserEmail: authPayload.Username,
 		Limit:     req.PageSize,
 		Offset:    (req.PageID - 1) * req.PageSize,
 	}
-
-	todos, err := server.store.ListTodoByUser(ctx, arg)
+	todayTodo, err := server.store.ListTodayTodo(ctx, argTodayList)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+		if err != sql.ErrNoRows {
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
 	}
+	resp.Today = todayTodo
 
-	ctx.JSON(http.StatusOK, todos)
+	// Get Upcoming List
+	argUpcomingList := db.ListUpcomingTodoParams{
+		UserEmail: authPayload.Username,
+		Limit:     req.PageSize,
+		Offset:    (req.PageID - 1) * req.PageSize,
+	}
+	upcomingTodo, err := server.store.ListUpcomingTodo(ctx, argUpcomingList)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
+	}
+	resp.Upcoming = upcomingTodo
+
+	// Get Done List
+	argDoneList := db.ListDoneTodoParams{
+		UserEmail: authPayload.Username,
+		Limit:     req.PageSize,
+		Offset:    (req.PageID - 1) * req.PageSize,
+	}
+	doneTodo, err := server.store.ListDoneTodo(ctx, argDoneList)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
+	}
+	resp.Done = doneTodo
+
+	ctx.JSON(http.StatusOK, resp)
 }
 
 func (server *Server) deleteTodo(ctx *gin.Context) {

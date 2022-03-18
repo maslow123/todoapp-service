@@ -24,6 +24,7 @@ type Todo struct {
 	Color      string    `json:"color"`
 	Date       time.Time `json:"date"`
 	IsPriority bool      `json:"is_priority"`
+	Status     bool      `json:"status"`
 }
 
 type User struct {

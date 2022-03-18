@@ -66,6 +66,11 @@ type ListTodoRequest struct {
 	PageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
 }
 
+type ListTodoResponse struct {
+	Today    []db.ListTodayTodoRow    `json:"today"`
+	Upcoming []db.ListUpcomingTodoRow `json:"upcoming"`
+	Done     []db.ListDoneTodoRow     `json:"done"`
+}
 type UpdateTodoRequest struct {
 	TodoID     int32  `json:"todo_id" binding:"required,min=1"`
 	CategoryID int32  `json:"category_id" binding:"required,min=1"`

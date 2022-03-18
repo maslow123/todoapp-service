@@ -19,7 +19,7 @@ INSERT INTO todos (
     is_priority
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7
-) RETURNING id, category_id, title, content, created_at, updated_at, user_email, color, date, is_priority
+) RETURNING id, category_id, title, content, created_at, updated_at, user_email, color, date, is_priority, status
 `
 
 type CreateTodoParams struct {
@@ -54,6 +54,7 @@ func (q *Queries) CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, e
 		&i.Color,
 		&i.Date,
 		&i.IsPriority,
+		&i.Status,
 	)
 	return i, err
 }
@@ -112,14 +113,157 @@ func (q *Queries) GetTodo(ctx context.Context, id int32) (GetTodoRow, error) {
 	return i, err
 }
 
-const listTodoByUser = `-- name: ListTodoByUser :many
+const listDoneTodo = `-- name: ListDoneTodo :many
 SELECT
-    t.id, t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority,
+    t.id, t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority, t.status,
     c.name as category_name
 FROM todos t
 INNER JOIN categories c
     ON c.id = t.category_id
-WHERE t.user_email = $1
+WHERE t.user_email = $1 
+    AND status = TRUE 
+ORDER BY date DESC
+LIMIT $2
+OFFSET $3
+`
+
+type ListDoneTodoParams struct {
+	UserEmail string `json:"user_email"`
+	Limit     int32  `json:"limit"`
+	Offset    int32  `json:"offset"`
+}
+
+type ListDoneTodoRow struct {
+	ID           int32     `json:"id"`
+	CategoryID   int32     `json:"category_id"`
+	UserEmail    string    `json:"user_email"`
+	Title        string    `json:"title"`
+	Content      string    `json:"content"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Date         time.Time `json:"date"`
+	Color        string    `json:"color"`
+	IsPriority   bool      `json:"is_priority"`
+	Status       bool      `json:"status"`
+	CategoryName string    `json:"category_name"`
+}
+
+func (q *Queries) ListDoneTodo(ctx context.Context, arg ListDoneTodoParams) ([]ListDoneTodoRow, error) {
+	rows, err := q.db.QueryContext(ctx, listDoneTodo, arg.UserEmail, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListDoneTodoRow{}
+	for rows.Next() {
+		var i ListDoneTodoRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CategoryID,
+			&i.UserEmail,
+			&i.Title,
+			&i.Content,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Date,
+			&i.Color,
+			&i.IsPriority,
+			&i.Status,
+			&i.CategoryName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTodayTodo = `-- name: ListTodayTodo :many
+SELECT
+    t.id, t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority, t.status,
+    c.name as category_name
+FROM todos t
+INNER JOIN categories c
+    ON c.id = t.category_id
+WHERE t.user_email = $1 
+    AND date <= now() 
+    AND status = FALSE 
+ORDER BY is_priority DESC
+LIMIT $2
+OFFSET $3
+`
+
+type ListTodayTodoParams struct {
+	UserEmail string `json:"user_email"`
+	Limit     int32  `json:"limit"`
+	Offset    int32  `json:"offset"`
+}
+
+type ListTodayTodoRow struct {
+	ID           int32     `json:"id"`
+	CategoryID   int32     `json:"category_id"`
+	UserEmail    string    `json:"user_email"`
+	Title        string    `json:"title"`
+	Content      string    `json:"content"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Date         time.Time `json:"date"`
+	Color        string    `json:"color"`
+	IsPriority   bool      `json:"is_priority"`
+	Status       bool      `json:"status"`
+	CategoryName string    `json:"category_name"`
+}
+
+func (q *Queries) ListTodayTodo(ctx context.Context, arg ListTodayTodoParams) ([]ListTodayTodoRow, error) {
+	rows, err := q.db.QueryContext(ctx, listTodayTodo, arg.UserEmail, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListTodayTodoRow{}
+	for rows.Next() {
+		var i ListTodayTodoRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CategoryID,
+			&i.UserEmail,
+			&i.Title,
+			&i.Content,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Date,
+			&i.Color,
+			&i.IsPriority,
+			&i.Status,
+			&i.CategoryName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTodoByUser = `-- name: ListTodoByUser :many
+SELECT
+    t.id, t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority, t.status,
+    c.name as category_name
+FROM todos t
+INNER JOIN categories c
+    ON c.id = t.category_id
+WHERE t.user_email = $1 
 
 ORDER BY created_at ASC
 LIMIT $2
@@ -143,6 +287,7 @@ type ListTodoByUserRow struct {
 	Date         time.Time `json:"date"`
 	Color        string    `json:"color"`
 	IsPriority   bool      `json:"is_priority"`
+	Status       bool      `json:"status"`
 	CategoryName string    `json:"category_name"`
 }
 
@@ -166,6 +311,79 @@ func (q *Queries) ListTodoByUser(ctx context.Context, arg ListTodoByUserParams) 
 			&i.Date,
 			&i.Color,
 			&i.IsPriority,
+			&i.Status,
+			&i.CategoryName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUpcomingTodo = `-- name: ListUpcomingTodo :many
+SELECT
+    t.id, t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority, t.status,
+    c.name as category_name
+FROM todos t
+INNER JOIN categories c
+    ON c.id = t.category_id
+WHERE t.user_email = $1 
+    AND date > now() 
+    AND status = FALSE 
+ORDER BY is_priority DESC, date ASC
+LIMIT $2
+OFFSET $3
+`
+
+type ListUpcomingTodoParams struct {
+	UserEmail string `json:"user_email"`
+	Limit     int32  `json:"limit"`
+	Offset    int32  `json:"offset"`
+}
+
+type ListUpcomingTodoRow struct {
+	ID           int32     `json:"id"`
+	CategoryID   int32     `json:"category_id"`
+	UserEmail    string    `json:"user_email"`
+	Title        string    `json:"title"`
+	Content      string    `json:"content"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Date         time.Time `json:"date"`
+	Color        string    `json:"color"`
+	IsPriority   bool      `json:"is_priority"`
+	Status       bool      `json:"status"`
+	CategoryName string    `json:"category_name"`
+}
+
+func (q *Queries) ListUpcomingTodo(ctx context.Context, arg ListUpcomingTodoParams) ([]ListUpcomingTodoRow, error) {
+	rows, err := q.db.QueryContext(ctx, listUpcomingTodo, arg.UserEmail, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListUpcomingTodoRow{}
+	for rows.Next() {
+		var i ListUpcomingTodoRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CategoryID,
+			&i.UserEmail,
+			&i.Title,
+			&i.Content,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Date,
+			&i.Color,
+			&i.IsPriority,
+			&i.Status,
 			&i.CategoryName,
 		); err != nil {
 			return nil, err
@@ -185,7 +403,7 @@ const updateTodoByUser = `-- name: UpdateTodoByUser :one
 UPDATE todos
 SET category_id = $2, title = $3, content = $4, updated_at = now(), date = $5, color = $6, is_priority = $7
 WHERE id = $1
-RETURNING id, category_id, title, content, created_at, updated_at, user_email, color, date, is_priority
+RETURNING id, category_id, title, content, created_at, updated_at, user_email, color, date, is_priority, status
 `
 
 type UpdateTodoByUserParams struct {
@@ -220,6 +438,7 @@ func (q *Queries) UpdateTodoByUser(ctx context.Context, arg UpdateTodoByUserPara
 		&i.Color,
 		&i.Date,
 		&i.IsPriority,
+		&i.Status,
 	)
 	return i, err
 }

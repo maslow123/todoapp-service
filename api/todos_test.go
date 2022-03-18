@@ -307,11 +307,55 @@ func TestCreateTodoAPI(t *testing.T) {
 func TestListTodosAPI(t *testing.T) {
 	user, _ := randomUser(t)
 	n := 5
-	todos := make([]db.ListTodoByUserRow, n)
+	var todos ListTodoResponse
+
+	var todayList []db.ListTodayTodoRow
+	var upcomingList []db.ListUpcomingTodoRow
+	var doneList []db.ListDoneTodoRow
 
 	for i := 0; i < n; i++ {
-		todos[i] = randomTodoWithExistingUser(t, user.Email)
+		todo := randomTodoWithExistingUser(t, user.Email)
+
+		today := db.ListTodayTodoRow{
+			ID:           todo.ID,
+			CategoryID:   todo.CategoryID,
+			Title:        todo.Title,
+			Content:      todo.Content,
+			Date:         todo.Date,
+			IsPriority:   todo.IsPriority,
+			Color:        todo.Color,
+			CategoryName: todo.CategoryName,
+		}
+		todayList = append(todayList, today)
+
+		upcoming := db.ListUpcomingTodoRow{
+			ID:           todo.ID,
+			CategoryID:   todo.CategoryID,
+			Title:        todo.Title,
+			Content:      todo.Content,
+			Date:         todo.Date,
+			IsPriority:   todo.IsPriority,
+			Color:        todo.Color,
+			CategoryName: todo.CategoryName,
+		}
+		upcomingList = append(upcomingList, upcoming)
+
+		done := db.ListDoneTodoRow{
+			ID:           todo.ID,
+			CategoryID:   todo.CategoryID,
+			Title:        todo.Title,
+			Content:      todo.Content,
+			Date:         todo.Date,
+			IsPriority:   todo.IsPriority,
+			Color:        todo.Color,
+			CategoryName: todo.CategoryName,
+		}
+		doneList = append(doneList, done)
 	}
+
+	todos.Today = todayList
+	todos.Upcoming = upcomingList
+	todos.Done = doneList
 
 	type Query struct {
 		pageID   int
@@ -335,16 +379,41 @@ func TestListTodosAPI(t *testing.T) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Email, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				arg := db.ListTodoByUserParams{
+				// Get Today List
+				todayArgs := db.ListTodayTodoParams{
 					UserEmail: user.Email, // no required
 					Limit:     int32(n),
 					Offset:    0,
 				}
 
 				store.EXPECT().
-					ListTodoByUser(gomock.Any(), gomock.Eq(arg)).
+					ListTodayTodo(gomock.Any(), gomock.Eq(todayArgs)).
 					Times(1).
-					Return(todos, nil)
+					Return(todos.Today, nil)
+
+				// Get Upcoming List
+				upcomingArgs := db.ListUpcomingTodoParams{
+					UserEmail: user.Email, // no required
+					Limit:     int32(n),
+					Offset:    0,
+				}
+
+				store.EXPECT().
+					ListUpcomingTodo(gomock.Any(), gomock.Eq(upcomingArgs)).
+					Times(1).
+					Return(todos.Upcoming, nil)
+
+				// Get Done List
+				doneArgs := db.ListDoneTodoParams{
+					UserEmail: user.Email, // no required
+					Limit:     int32(n),
+					Offset:    0,
+				}
+
+				store.EXPECT().
+					ListDoneTodo(gomock.Any(), gomock.Eq(doneArgs)).
+					Times(1).
+					Return(todos.Done, nil)
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
@@ -1030,11 +1099,11 @@ func requireBodyMatchTodoRow(t *testing.T, body *bytes.Buffer, todo db.GetTodoRo
 	require.Equal(t, todo, gotTodo)
 }
 
-func requireBodyMatchTodos(t *testing.T, body *bytes.Buffer, todo []db.ListTodoByUserRow) {
+func requireBodyMatchTodos(t *testing.T, body *bytes.Buffer, todo ListTodoResponse) {
 	data, err := ioutil.ReadAll(body)
 	require.NoError(t, err)
 
-	var gotTodo []db.ListTodoByUserRow
+	var gotTodo ListTodoResponse
 	err = json.Unmarshal(data, &gotTodo)
 
 	require.NoError(t, err)

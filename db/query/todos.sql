@@ -13,16 +13,58 @@ INSERT INTO todos (
 
 -- name: ListTodoByUser :many
 SELECT
-    t.id, t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority,
+    t.id, t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority, t.status,
     c.name as category_name
 FROM todos t
 INNER JOIN categories c
     ON c.id = t.category_id
-WHERE t.user_email = $1
+WHERE t.user_email = $1 
 
 ORDER BY created_at ASC
 LIMIT $2
 OFFSET $3;
+
+-- name: ListTodayTodo :many
+SELECT
+    t.id, t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority, t.status,
+    c.name as category_name
+FROM todos t
+INNER JOIN categories c
+    ON c.id = t.category_id
+WHERE t.user_email = $1 
+    AND date <= now() 
+    AND status = FALSE 
+ORDER BY is_priority DESC
+LIMIT $2
+OFFSET $3;
+
+-- name: ListUpcomingTodo :many
+SELECT
+    t.id, t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority, t.status,
+    c.name as category_name
+FROM todos t
+INNER JOIN categories c
+    ON c.id = t.category_id
+WHERE t.user_email = $1 
+    AND date > now() 
+    AND status = FALSE 
+ORDER BY is_priority DESC, date ASC
+LIMIT $2
+OFFSET $3;
+
+-- name: ListDoneTodo :many
+SELECT
+    t.id, t.category_id, t.user_email, t.title, t.content, t.created_at, t.updated_at, t.date, t.color, t.is_priority, t.status,
+    c.name as category_name
+FROM todos t
+INNER JOIN categories c
+    ON c.id = t.category_id
+WHERE t.user_email = $1 
+    AND status = TRUE 
+ORDER BY date DESC
+LIMIT $2
+OFFSET $3;
+
 
 -- name: GetTodo :one
 SELECT

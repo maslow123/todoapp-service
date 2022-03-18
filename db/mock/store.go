@@ -182,6 +182,36 @@ func (mr *MockStoreMockRecorder) ListCategories(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCategories", reflect.TypeOf((*MockStore)(nil).ListCategories), arg0, arg1)
 }
 
+// ListDoneTodo mocks base method.
+func (m *MockStore) ListDoneTodo(arg0 context.Context, arg1 db.ListDoneTodoParams) ([]db.ListDoneTodoRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListDoneTodo", arg0, arg1)
+	ret0, _ := ret[0].([]db.ListDoneTodoRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListDoneTodo indicates an expected call of ListDoneTodo.
+func (mr *MockStoreMockRecorder) ListDoneTodo(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDoneTodo", reflect.TypeOf((*MockStore)(nil).ListDoneTodo), arg0, arg1)
+}
+
+// ListTodayTodo mocks base method.
+func (m *MockStore) ListTodayTodo(arg0 context.Context, arg1 db.ListTodayTodoParams) ([]db.ListTodayTodoRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListTodayTodo", arg0, arg1)
+	ret0, _ := ret[0].([]db.ListTodayTodoRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListTodayTodo indicates an expected call of ListTodayTodo.
+func (mr *MockStoreMockRecorder) ListTodayTodo(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTodayTodo", reflect.TypeOf((*MockStore)(nil).ListTodayTodo), arg0, arg1)
+}
+
 // ListTodoByUser mocks base method.
 func (m *MockStore) ListTodoByUser(arg0 context.Context, arg1 db.ListTodoByUserParams) ([]db.ListTodoByUserRow, error) {
 	m.ctrl.T.Helper()
@@ -195,6 +225,21 @@ func (m *MockStore) ListTodoByUser(arg0 context.Context, arg1 db.ListTodoByUserP
 func (mr *MockStoreMockRecorder) ListTodoByUser(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTodoByUser", reflect.TypeOf((*MockStore)(nil).ListTodoByUser), arg0, arg1)
+}
+
+// ListUpcomingTodo mocks base method.
+func (m *MockStore) ListUpcomingTodo(arg0 context.Context, arg1 db.ListUpcomingTodoParams) ([]db.ListUpcomingTodoRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListUpcomingTodo", arg0, arg1)
+	ret0, _ := ret[0].([]db.ListUpcomingTodoRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListUpcomingTodo indicates an expected call of ListUpcomingTodo.
+func (mr *MockStoreMockRecorder) ListUpcomingTodo(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUpcomingTodo", reflect.TypeOf((*MockStore)(nil).ListUpcomingTodo), arg0, arg1)
 }
 
 // ListUsers mocks base method.
