@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"log"
@@ -102,6 +103,17 @@ func (server *Server) me(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	if authPayload == nil {
 		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("Unauthorized")))
+		return
+	}
+
+	_, err := server.store.GetUser(context.Background(), authPayload.Username)
+	if err != nil {
+		log.Println(err)
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusUnauthorized, errors.New("invalid-user"))
+			return
+		}
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 		return
 	}
 
