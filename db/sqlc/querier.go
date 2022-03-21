@@ -22,6 +22,7 @@ type Querier interface {
 	ListTodoByUser(ctx context.Context, arg ListTodoByUserParams) ([]ListTodoByUserRow, error)
 	ListUpcomingTodo(ctx context.Context, arg ListUpcomingTodoParams) ([]ListUpcomingTodoRow, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
+	MarkAsCompleteTodo(ctx context.Context, id int32) (Todo, error)
 	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error)
 	UpdateTodoByUser(ctx context.Context, arg UpdateTodoByUserParams) (Todo, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)

@@ -85,3 +85,9 @@ RETURNING *;
 -- name: DeleteTodo :exec
 DELETE FROM todos
 WHERE id = $1;
+
+-- name: MarkAsCompleteTodo :one
+UPDATE todos
+SET status = true
+WHERE id = $1
+RETURNING *;

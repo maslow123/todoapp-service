@@ -223,3 +223,34 @@ func (server *Server) updateTodo(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, todo)
 }
+
+func (server *Server) markCompleteTodo(ctx *gin.Context) {
+	var req MarkCompleteTodoRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	// check todo is exists or no
+	_, err := server.store.GetTodo(context.Background(), req.TodoID)
+	if err != nil {
+		log.Println(err)
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(errors.New("todo-not-found")))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	todo, err := server.store.MarkAsCompleteTodo(context.Background(), req.TodoID)
+	if err != nil {
+		log.Println(err)
+
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, todo)
+}

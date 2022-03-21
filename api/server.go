@@ -57,6 +57,7 @@ func (server *Server) setupRouter() {
 	authRoutes.GET("/todo/:todo_id", server.getTodo)
 	authRoutes.DELETE("/todo/:todo_id", server.deleteTodo)
 	authRoutes.PUT("/todo", server.updateTodo)
+	authRoutes.PUT("/todo/:todo_id", server.markCompleteTodo)
 
 	// Upload
 	authRoutes.POST("/file", server.UpdateUserPhoto)

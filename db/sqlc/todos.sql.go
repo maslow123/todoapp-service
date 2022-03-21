@@ -399,6 +399,32 @@ func (q *Queries) ListUpcomingTodo(ctx context.Context, arg ListUpcomingTodoPara
 	return items, nil
 }
 
+const markAsCompleteTodo = `-- name: MarkAsCompleteTodo :one
+UPDATE todos
+SET status = true
+WHERE id = $1
+RETURNING id, category_id, title, content, created_at, updated_at, user_email, color, date, is_priority, status
+`
+
+func (q *Queries) MarkAsCompleteTodo(ctx context.Context, id int32) (Todo, error) {
+	row := q.db.QueryRowContext(ctx, markAsCompleteTodo, id)
+	var i Todo
+	err := row.Scan(
+		&i.ID,
+		&i.CategoryID,
+		&i.Title,
+		&i.Content,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserEmail,
+		&i.Color,
+		&i.Date,
+		&i.IsPriority,
+		&i.Status,
+	)
+	return i, err
+}
+
 const updateTodoByUser = `-- name: UpdateTodoByUser :one
 UPDATE todos
 SET category_id = $2, title = $3, content = $4, updated_at = now(), date = $5, color = $6, is_priority = $7

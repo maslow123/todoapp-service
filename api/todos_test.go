@@ -1072,6 +1072,120 @@ func TestUpdateTodo(t *testing.T) {
 	}
 }
 
+func TestMarkAsCompleteTodo(t *testing.T) {
+	todo := randomTodo(t)
+	todo2 := randomTodo(t)
+
+	resp := db.Todo{
+		ID:         todo.ID,
+		CategoryID: todo2.CategoryID,
+		Title:      todo2.Content,
+		Content:    todo2.Content,
+		Date:       todo2.Date,
+		Color:      todo2.Color,
+		IsPriority: todo2.IsPriority,
+		Status:     true,
+	}
+
+	testCases := []struct {
+		name          string
+		todo_id       int32
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
+		buildStubs    func(store *mockdb.MockStore)
+		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			name:    "OK",
+			todo_id: todo.ID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, todo.UserEmail, time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetTodo(gomock.Any(), gomock.Eq(todo.ID)).
+					Times(1)
+
+				store.EXPECT().
+					MarkAsCompleteTodo(gomock.Any(), gomock.Eq(todo.ID)).
+					Times(1).
+					Return(resp, nil)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, recorder.Code)
+				data, err := ioutil.ReadAll(recorder.Body)
+				require.NoError(t, err)
+
+				var gotTodo db.Todo
+				err = json.Unmarshal(data, &gotTodo)
+				require.NoError(t, err)
+
+				require.Equal(t, gotTodo.Status, true)
+			},
+		},
+		{
+			name:    "Unauthorized",
+			todo_id: todo.ID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetTodo(gomock.Any(), gomock.Eq(todo.ID)).
+					Times(0)
+
+				store.EXPECT().
+					MarkAsCompleteTodo(gomock.Any(), gomock.Eq(todo.ID)).
+					Times(0).
+					Return(resp, nil)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
+			},
+		},
+		{
+			name:    "Todo NotFound",
+			todo_id: 999,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, todo.UserEmail, time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetTodo(gomock.Any(), gomock.Any()).
+					Return(db.GetTodoRow{}, sql.ErrNoRows)
+
+				store.EXPECT().
+					UpdateTodoByUser(gomock.Any(), gomock.Any()).
+					Times(0).
+					Return(resp, nil)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			tc.buildStubs(store)
+
+			server := newTestServer(t, store)
+			recorder := httptest.NewRecorder()
+
+			url := fmt.Sprintf("/todo/%d", tc.todo_id)
+			request, err := http.NewRequest(http.MethodPut, url, nil)
+			require.NoError(t, err)
+
+			tc.setupAuth(t, request, server.tokenMaker)
+			server.router.ServeHTTP(recorder, request)
+			tc.checkResponse(t, recorder)
+		})
+	}
+}
 func requireBodyMatchTodo(t *testing.T, body *bytes.Buffer, todo db.Todo) {
 	data, err := ioutil.ReadAll(body)
 	require.NoError(t, err)

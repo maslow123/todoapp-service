@@ -63,7 +63,7 @@ type GetTodoRequest struct {
 
 type ListTodoRequest struct {
 	PageID   int32 `form:"page_id" binding:"required,min=1"`
-	PageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
+	PageSize int32 `form:"page_size" binding:"required,min=5,max=100"`
 }
 
 type ListTodoResponse struct {
@@ -79,4 +79,7 @@ type UpdateTodoRequest struct {
 	Date       string `json:"date" binding:"required"`
 	Color      string `json:"color" binding:"required"`
 	IsPriority *bool  `json:"is_priority" binding:"required"`
+}
+type MarkCompleteTodoRequest struct {
+	TodoID int32 `uri:"todo_id" binding:"required,min=1"`
 }
