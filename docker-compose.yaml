@@ -1,0 +1,45 @@
+version: '3'
+services:
+  testapi:
+    container_name: testapi
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - 8080:8080
+    restart: on-failure
+    volumes:
+      - api:/usr/src/app/
+    networks:
+      - todoapp
+  testdb:
+    image: postgres:latest
+    container_name: testdb
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+      PGPASSWORD: ${DB_PASS}
+      PGDATA: /data
+    ports:
+      - '5432:5432'
+    volumes:
+      - database_postgres:/var/lib/postgresql/data
+    networks:
+      - todoapp
+  migrate:
+    image: migrate/migrate
+    volumes:
+      - ./db/migration:/migrations
+    command: ["-path", "/migrations", "-database",  "postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:5432/${DB_NAME}?sslmode=disable", "up"]
+    links:
+      - testdb
+    networks:
+      - todoapp
+volumes:
+  api:
+  database_postgres:
+
+networks:
+  todoapp:
+    driver: bridge

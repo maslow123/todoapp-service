@@ -1,5 +1,6 @@
 DIR = $(shell pwd)
-.PHONY: postgres createdb dropdb migrateup migratedown sqlc test server mock migrateup1 migratedown1 resetdb
+.PHONY: postgres createdb dropdb migrateup migratedown sqlc test server mock migrateup1 migratedown1 resetdb \
+		infratest buildapi
 
 postgres:
 	docker run --name postgres -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres
@@ -25,8 +26,15 @@ test:
 mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/maslow123/todoapp-services/db/sqlc Store
 
+infratest:
+	docker-compose up -d --force-recreate testdb
+	docker-compose up migrate
+
+buildapi:
+	docker-compose build --no-cache testapi
+
 runapi:
-	go run main.go
+	docker-compose up --force-recreate -d testapi
 
 # make createsql FILENAME=
 createsql:
